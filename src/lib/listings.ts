@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Listing {
   id: string;
   user_id: string;
-  photo_path: string;
+  photo_url: string;
   category: string;
   description: string | null;
   latitude: number;
@@ -36,7 +36,7 @@ export async function uploadItemPhoto(
 // Creates a new listing in the database.
 export async function createListing(listing: {
   user_id: string;
-  photo_path: string;
+  photo_url: string;
   category: string;
   description: string;
   latitude: number;
