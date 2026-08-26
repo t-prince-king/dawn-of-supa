@@ -30,6 +30,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
 
   // Sends the email + password to the backend.
   async function submit(event: React.FormEvent) {
@@ -37,7 +38,7 @@ function AuthPage() {
     setBusy(true);
 
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: window.location.origin },
@@ -45,6 +46,12 @@ function AuthPage() {
       setBusy(false);
       if (error) {
         toast.error(error.message);
+        return;
+      }
+      // With email confirmation on there is no session yet — the user must
+      // click the link in their email before they can sign in and post.
+      if (!data.session) {
+        setCheckEmail(true);
         return;
       }
       toast.success("Account created! You're signed in.");
@@ -60,6 +67,50 @@ function AuthPage() {
     }
     toast.success("Welcome back!");
     navigate({ to: "/" });
+  }
+
+  // Emails a link that opens the "set a new password" page.
+  async function sendResetEmail() {
+    if (!email) {
+      toast.error("Enter your email first, then tap Forgot password.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password reset email sent. Check your inbox.");
+  }
+
+  // Shown right after signing up, while they go and confirm their email.
+  if (checkEmail) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-md px-4 py-12 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            We sent a confirmation link to {email}. Click it to verify your account, then come
+            back and sign in to post items.
+          </p>
+          <Button
+            className="mt-6"
+            onClick={() => {
+              setCheckEmail(false);
+              setIsSignUp(false);
+              setPassword("");
+            }}
+          >
+            Back to sign in
+          </Button>
+        </main>
+      </div>
+    );
   }
 
   return (
