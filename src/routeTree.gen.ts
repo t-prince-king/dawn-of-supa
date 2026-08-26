@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FindRouteImport } from './routes/find'
 import { Route as PostRouteImport } from './routes/post'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ItemIdRouteImport } from './routes/item.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemIdRoute = ItemIdRouteImport.update({
   id: '/item/$id',
   path: '/item/$id',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRoutesById {
@@ -70,14 +78,37 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
   '/post': typeof PostRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/auth' | '/find' | '/post' | '/item/$id'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/find'
+    | '/post'
+    | '/reset-password'
+    | '/item/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/auth' | '/find' | '/post' | '/item/$id'
-  id: '__root__' | '/' | '/admin' | '/auth' | '/find' | '/post' | '/item/$id'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/find'
+    | '/post'
+    | '/reset-password'
+    | '/item/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/find'
+    | '/post'
+    | '/reset-password'
+    | '/item/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,6 +117,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   FindRoute: typeof FindRoute
   PostRoute: typeof PostRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ItemIdRoute: typeof ItemIdRoute
 }
 
@@ -126,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/item/$id': {
       id: '/item/$id'
       path: '/item/$id'
@@ -142,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   FindRoute: FindRoute,
   PostRoute: PostRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ItemIdRoute: ItemIdRoute,
 }
 export const routeTree = rootRouteImport
