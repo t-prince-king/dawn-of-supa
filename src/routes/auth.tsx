@@ -154,6 +154,17 @@ function AuthPage() {
             </Button>
           </form>
 
+          {!isSignUp && (
+            <button
+              type="button"
+              onClick={sendResetEmail}
+              disabled={busy}
+              className="mt-4 w-full text-sm text-muted-foreground underline"
+            >
+              Forgot password?
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
