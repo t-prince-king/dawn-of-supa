@@ -1,0 +1,14 @@
+{
+  "name": "ScrapSpot — Find What's Worth Saving",
+  "short_name": "ScrapSpot",
+  "description": "Post unwanted reusable items with a photo and location for others to find and salvage.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
