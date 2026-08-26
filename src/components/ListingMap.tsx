@@ -37,9 +37,9 @@ function ChangeView({ center }: { center: Coordinates }) {
 interface ListingMapProps {
   userLocation: Coordinates;
   listings: Listing[];
-  selectedId?: string;
-  onMarkerClick?: (listingId: string) => void;
-  height?: string;
+  selectedId?: string | undefined;
+  onMarkerClick?: ((listingId: string) => void) | undefined;
+  height?: string | undefined;
 }
 
 export default function ListingMap({
