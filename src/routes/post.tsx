@@ -38,7 +38,7 @@ function PostPage() {
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [category, setCategory] = useState(CATEGORIES[0].name);
+  const [category, setCategory] = useState(CATEGORIES[0]?.name ?? "Other");
   const [description, setDescription] = useState("");
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locating, setLocating] = useState(false);

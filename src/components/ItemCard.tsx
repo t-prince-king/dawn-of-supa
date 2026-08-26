@@ -9,8 +9,8 @@ import { Card } from "@/components/ui/card";
 
 interface ItemCardProps {
   listing: Listing;
-  photoUrl?: string;
-  distanceMiles?: number;
+  photoUrl?: string | undefined;
+  distanceMiles?: number | undefined;
 }
 
 export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
