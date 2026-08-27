@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import { createListing, uploadItemPhoto } from "@/lib/listings";
-import { fuzzLocation, getUserLocation, type Coordinates } from "@/lib/location";
+import { getUserLocation, type Coordinates } from "@/lib/location";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,14 +87,13 @@ function PostPage() {
     setSaving(true);
     try {
       const photoPath = await uploadItemPhoto(file, userId);
-      const safeCoords = fuzzLocation(coords);
       await createListing({
         user_id: userId,
         photo_url: photoPath,
         category,
         description: description.trim(),
-        latitude: safeCoords.latitude,
-        longitude: safeCoords.longitude,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
       });
       toast.success("Posted! Someone nearby can now save it.");
       navigate({ to: "/find" });
@@ -205,7 +204,7 @@ function PostPage() {
           <Card className="p-4">
             <p className="text-sm font-semibold text-foreground">3. Where is it?</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              We shift the pin randomly by up to half a mile — your exact address is never saved.
+              Your exact location is used so people can find the item.
             </p>
             <Button
               type="button"
