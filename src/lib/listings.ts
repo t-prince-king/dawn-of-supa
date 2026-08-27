@@ -12,9 +12,38 @@ export interface Listing {
   longitude: number;
   status: string;
   created_at: string;
+  expires_at: string;
+  pending_until: string | null;
 }
 
 const PHOTO_BUCKET = "listing-photos";
+
+// How long a "pickup pending" hold lasts before the item goes back to available.
+export const PICKUP_HOLD_MINUTES = 60;
+
+// The four states a listing can be in, as shown to people.
+export type ListingState = "Available" | "Pickup pending" | "Taken" | "Expired";
+
+// Works out the real state right now (holds and expiry are time-based).
+export function getListingState(listing: Listing): ListingState {
+  if (listing.status === "taken") return "Taken";
+  if (new Date(listing.expires_at).getTime() <= Date.now()) return "Expired";
+  if (
+    listing.status === "pending" &&
+    listing.pending_until &&
+    new Date(listing.pending_until).getTime() > Date.now()
+  ) {
+    return "Pickup pending";
+  }
+  return "Available";
+}
+
+// How long a poster can keep an item listed.
+export const DURATIONS = [
+  { label: "Today", hours: 24 },
+  { label: "3 days", hours: 72 },
+  { label: "7 days", hours: 168 },
+];
 
 // Uploads the item's photo and returns its storage path.
 // Photos are stored inside a folder named after the user's id.
@@ -34,6 +63,8 @@ export async function uploadItemPhoto(
 }
 
 // Creates a new listing in the database.
+// It first checks for an identical listing from the last few minutes, so a
+// double tap (or a page that submits twice) can never create two rows.
 export async function createListing(listing: {
   user_id: string;
   photo_url: string;
@@ -41,22 +72,68 @@ export async function createListing(listing: {
   description: string;
   latitude: number;
   longitude: number;
+  hours: number;
 }): Promise<void> {
-  const { error } = await supabase.from("listings").insert(listing);
+  const { hours, ...values } = listing;
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  const { data: recent } = await supabase
+    .from("listings")
+    .select("id")
+    .eq("user_id", values.user_id)
+    .eq("category", values.category)
+    .eq("latitude", values.latitude)
+    .eq("longitude", values.longitude)
+    .gte("created_at", fiveMinutesAgo)
+    .limit(1);
+
+  if (recent && recent.length > 0) return; // already posted a moment ago
+
+  const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+  const { error } = await supabase
+    .from("listings")
+    .insert({ ...values, expires_at: expiresAt });
   if (error) throw new Error("Could not save your listing. Please try again.");
 }
 
-// Finds listings near the user's location (all available ones;
-// distance filtering happens in the app so it feels instant).
+// Finds listings that are still up for grabs (not taken, not expired).
+// Distance filtering happens in the app so it feels instant.
 export async function getAvailableListings(): Promise<Listing[]> {
   const { data, error } = await supabase
     .from("listings")
     .select("*")
-    .eq("status", "available")
+    .neq("status", "taken")
+    .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false });
 
   if (error) throw new Error("Could not load listings.");
-  return data as Listing[];
+
+  // Safety net: never show the same listing twice.
+  const seen = new Set<string>();
+  return (data as Listing[]).filter((listing) => {
+    if (seen.has(listing.id)) return false;
+    seen.add(listing.id);
+    return true;
+  });
+}
+
+// Poster marks their own item as taken (it then leaves the normal results).
+export async function markListingTaken(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "taken", pending_until: null })
+    .eq("id", id);
+  if (error) throw new Error("Could not update this listing.");
+}
+
+// Someone says they are on their way: puts a short hold on the item.
+export async function holdListingForPickup(id: string): Promise<void> {
+  const until = new Date(Date.now() + PICKUP_HOLD_MINUTES * 60 * 1000).toISOString();
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "pending", pending_until: until })
+    .eq("id", id);
+  if (error) throw new Error("Could not hold this item.");
 }
 
 // Loads a single listing by its id (for the item details page).
