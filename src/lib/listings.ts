@@ -12,9 +12,38 @@ export interface Listing {
   longitude: number;
   status: string;
   created_at: string;
+  expires_at: string;
+  pending_until: string | null;
 }
 
 const PHOTO_BUCKET = "listing-photos";
+
+// How long a "pickup pending" hold lasts before the item goes back to available.
+export const PICKUP_HOLD_MINUTES = 60;
+
+// The four states a listing can be in, as shown to people.
+export type ListingState = "Available" | "Pickup pending" | "Taken" | "Expired";
+
+// Works out the real state right now (holds and expiry are time-based).
+export function getListingState(listing: Listing): ListingState {
+  if (listing.status === "taken") return "Taken";
+  if (new Date(listing.expires_at).getTime() <= Date.now()) return "Expired";
+  if (
+    listing.status === "pending" &&
+    listing.pending_until &&
+    new Date(listing.pending_until).getTime() > Date.now()
+  ) {
+    return "Pickup pending";
+  }
+  return "Available";
+}
+
+// How long a poster can keep an item listed.
+export const DURATIONS = [
+  { label: "Today", hours: 24 },
+  { label: "3 days", hours: 72 },
+  { label: "7 days", hours: 168 },
+];
 
 // Uploads the item's photo and returns its storage path.
 // Photos are stored inside a folder named after the user's id.
