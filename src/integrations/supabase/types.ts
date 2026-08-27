@@ -19,9 +19,11 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          expires_at: string
           id: string
           latitude: number
           longitude: number
+          pending_until: string | null
           photo_url: string
           status: string
           updated_at: string
@@ -31,9 +33,11 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          expires_at?: string
           id?: string
           latitude: number
           longitude: number
+          pending_until?: string | null
           photo_url: string
           status?: string
           updated_at?: string
@@ -43,9 +47,11 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          expires_at?: string
           id?: string
           latitude?: number
           longitude?: number
+          pending_until?: string | null
           photo_url?: string
           status?: string
           updated_at?: string
