@@ -97,7 +97,7 @@ function ItemPage() {
 
             <Button className="mt-5 w-full" size="lg" asChild>
               <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}`}
+                href={`geo:${listing.latitude},${listing.longitude}`}
                 target="_blank"
                 rel="noreferrer"
               >
