@@ -44,6 +44,8 @@ function ItemPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Loads this one item plus its photo link.
   useEffect(() => {
@@ -54,12 +56,46 @@ function ItemPage() {
         const urls = await getPhotoUrls([found.photo_url]);
         setPhotoUrl(urls[found.photo_url]);
       }
+      const { data } = await supabase.auth.getSession();
+      setUserId(data.session?.user.id ?? null);
       setLoading(false);
     }
     load();
   }, [id]);
 
+  // Poster closes their own listing.
+  async function markTaken() {
+    if (!listing || busy) return;
+    setBusy(true);
+    try {
+      await markListingTaken(listing.id);
+      setListing({ ...listing, status: "taken", pending_until: null });
+      toast.success("Marked as taken.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update it.");
+    }
+    setBusy(false);
+  }
+
+  // Someone says they're on their way — short hold only.
+  async function holdPickup() {
+    if (!listing || busy) return;
+    setBusy(true);
+    try {
+      await holdListingForPickup(listing.id);
+      const until = new Date(Date.now() + PICKUP_HOLD_MINUTES * 60 * 1000).toISOString();
+      setListing({ ...listing, status: "pending", pending_until: until });
+      toast.success(`Held for ${PICKUP_HOLD_MINUTES} minutes.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not hold it.");
+    }
+    setBusy(false);
+  }
+
   const CategoryIcon = getCategoryIcon(listing?.category ?? "Other");
+  const state = listing ? getListingState(listing) : null;
+  const isOwner = Boolean(listing && userId && listing.user_id === userId);
+
 
   return (
     <div className="min-h-screen bg-background">
