@@ -135,9 +135,23 @@ function ItemPage() {
               {listing.category}
             </h1>
 
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xl font-bold text-primary">{formatPrice(listing)}</span>
+              <Badge variant="secondary">{state}</Badge>
+            </div>
+
             {listing.description && (
               <p className="mt-2 text-sm text-muted-foreground">{listing.description}</p>
             )}
+
+            <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {state === "Expired"
+                ? "This listing has expired."
+                : `${formatTimeLeft(listing.expires_at)} · expires ${new Date(
+                    listing.expires_at,
+                  ).toLocaleString()}`}
+            </p>
 
             <p className="mt-4 text-xs text-muted-foreground">
               The pin is approximate (shifted for the poster's privacy). Look around the area when
@@ -154,6 +168,33 @@ function ItemPage() {
                 Get directions
               </a>
             </Button>
+
+            {isOwner ? (
+              state !== "Taken" && (
+                <Button
+                  className="mt-3 w-full"
+                  size="lg"
+                  variant="outline"
+                  onClick={markTaken}
+                  disabled={busy}
+                >
+                  Mark as taken
+                </Button>
+              )
+            ) : (
+              state === "Available" && (
+                <Button
+                  className="mt-3 w-full"
+                  size="lg"
+                  variant="outline"
+                  onClick={holdPickup}
+                  disabled={busy}
+                >
+                  I'm on my way (holds {PICKUP_HOLD_MINUTES} min)
+                </Button>
+              )
+            )}
+
           </div>
         )}
       </main>
