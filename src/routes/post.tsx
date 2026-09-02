@@ -40,9 +40,13 @@ function PostPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [category, setCategory] = useState(CATEGORIES[0]?.name ?? "Other");
   const [description, setDescription] = useState("");
+  const [hours, setHours] = useState(168); // 7 days by default
+  const [isFree, setIsFree] = useState(true);
+  const [price, setPrice] = useState("");
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
+
 
   // Who is signed in?
   useEffect(() => {
