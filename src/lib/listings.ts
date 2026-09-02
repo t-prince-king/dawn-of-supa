@@ -92,7 +92,10 @@ export async function createListing(listing: {
   latitude: number;
   longitude: number;
   hours: number;
+  is_free: boolean;
+  price: number | null;
 }): Promise<void> {
+
   const { hours, ...values } = listing;
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
