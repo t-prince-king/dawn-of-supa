@@ -14,7 +14,26 @@ export interface Listing {
   created_at: string;
   expires_at: string;
   pending_until: string | null;
+  is_free: boolean;
+  price: number | null;
 }
+
+// Shows either "FREE" or the asking price.
+export function formatPrice(listing: Listing): string {
+  if (listing.is_free || listing.price === null) return "FREE";
+  return `$${Number(listing.price).toFixed(2)}`;
+}
+
+// Friendly "time left" text, e.g. "2 days left" or "5 hours left".
+export function formatTimeLeft(expiresAt: string): string {
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "Expired";
+  const hours = Math.floor(ms / (60 * 60 * 1000));
+  if (hours < 1) return "Less than an hour left";
+  if (hours < 48) return `${hours} hour${hours === 1 ? "" : "s"} left`;
+  return `${Math.floor(hours / 24)} days left`;
+}
+
 
 const PHOTO_BUCKET = "listing-photos";
 
