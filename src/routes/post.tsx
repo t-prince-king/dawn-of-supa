@@ -215,9 +215,52 @@ function PostPage() {
             />
           </Card>
 
-          {/* 3. Location */}
+          {/* 3. Free or for sale */}
           <Card className="p-4">
-            <p className="text-sm font-semibold text-foreground">3. Where is it?</p>
+            <p className="text-sm font-semibold text-foreground">3. Free or for sale?</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                { label: "Free", free: true },
+                { label: "For sale", free: false },
+              ].map((option) => (
+                <button
+                  key={option.label}
+                  type="button"
+                  onClick={() => setIsFree(option.free)}
+                  className={`rounded-lg border p-2 text-sm transition-colors ${
+                    isFree === option.free
+                      ? "border-primary bg-secondary font-semibold text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {!isFree && (
+              <>
+                <Label htmlFor="price" className="mt-4 block text-sm">
+                  Price ($)
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder="20.00"
+                  className="mt-1.5"
+                />
+              </>
+            )}
+          </Card>
+
+          {/* 4. Location */}
+          <Card className="p-4">
+            <p className="text-sm font-semibold text-foreground">4. Where is it?</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Your exact location is used so people can find the item.
             </p>
@@ -237,9 +280,32 @@ function PostPage() {
             </Button>
           </Card>
 
+          {/* 5. How long it stays up */}
+          <Card className="p-4">
+            <p className="text-sm font-semibold text-foreground">5. How long is it available?</p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {DURATIONS.map((option) => (
+                <button
+                  key={option.label}
+                  type="button"
+                  onClick={() => setHours(option.hours)}
+                  className={`rounded-lg border p-2 text-sm transition-colors ${
+                    hours === option.hours
+                      ? "border-primary bg-secondary font-semibold text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </Card>
+
           <Button type="submit" size="lg" disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {saving ? "Posting…" : "Post item"}
           </Button>
+
         </form>
       </main>
     </div>
