@@ -5,11 +5,12 @@ import { Camera, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
-import { createListing, uploadItemPhoto } from "@/lib/listings";
+import { createListing, uploadItemPhoto, DURATIONS } from "@/lib/listings";
 import { getUserLocation, type Coordinates } from "@/lib/location";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -40,9 +41,13 @@ function PostPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [category, setCategory] = useState(CATEGORIES[0]?.name ?? "Other");
   const [description, setDescription] = useState("");
+  const [hours, setHours] = useState(168); // 7 days by default
+  const [isFree, setIsFree] = useState(true);
+  const [price, setPrice] = useState("");
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
+
 
   // Who is signed in?
   useEffect(() => {
@@ -75,12 +80,19 @@ function PostPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!userId) return;
+    if (saving) return; // already posting — ignore extra taps
     if (!file) {
       toast.error("Please add a photo of the item.");
       return;
     }
     if (!coords) {
       toast.error("Please share your location so people can find it.");
+      return;
+    }
+
+    const priceValue = Number(price);
+    if (!isFree && (!price.trim() || Number.isNaN(priceValue) || priceValue <= 0)) {
+      toast.error("Please enter a price for this item.");
       return;
     }
 
@@ -94,14 +106,18 @@ function PostPage() {
         description: description.trim(),
         latitude: coords.latitude,
         longitude: coords.longitude,
+        hours,
+        is_free: isFree,
+        price: isFree ? null : priceValue,
       });
       toast.success("Posted! Someone nearby can now save it.");
       navigate({ to: "/find" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong.");
+      setSaving(false);
     }
-    setSaving(false);
   }
+
 
   if (checkingUser) {
     return (
@@ -200,9 +216,52 @@ function PostPage() {
             />
           </Card>
 
-          {/* 3. Location */}
+          {/* 3. Free or for sale */}
           <Card className="p-4">
-            <p className="text-sm font-semibold text-foreground">3. Where is it?</p>
+            <p className="text-sm font-semibold text-foreground">3. Free or for sale?</p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                { label: "Free", free: true },
+                { label: "For sale", free: false },
+              ].map((option) => (
+                <button
+                  key={option.label}
+                  type="button"
+                  onClick={() => setIsFree(option.free)}
+                  className={`rounded-lg border p-2 text-sm transition-colors ${
+                    isFree === option.free
+                      ? "border-primary bg-secondary font-semibold text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {!isFree && (
+              <>
+                <Label htmlFor="price" className="mt-4 block text-sm">
+                  Price ($)
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder="20.00"
+                  className="mt-1.5"
+                />
+              </>
+            )}
+          </Card>
+
+          {/* 4. Location */}
+          <Card className="p-4">
+            <p className="text-sm font-semibold text-foreground">4. Where is it?</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Your exact location is used so people can find the item.
             </p>
@@ -222,9 +281,32 @@ function PostPage() {
             </Button>
           </Card>
 
+          {/* 5. How long it stays up */}
+          <Card className="p-4">
+            <p className="text-sm font-semibold text-foreground">5. How long is it available?</p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {DURATIONS.map((option) => (
+                <button
+                  key={option.label}
+                  type="button"
+                  onClick={() => setHours(option.hours)}
+                  className={`rounded-lg border p-2 text-sm transition-colors ${
+                    hours === option.hours
+                      ? "border-primary bg-secondary font-semibold text-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </Card>
+
           <Button type="submit" size="lg" disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {saving ? "Posting…" : "Post item"}
           </Button>
+
         </form>
       </main>
     </div>

@@ -1,10 +1,23 @@
 // Item details: big photo, description and a Get Directions button.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Navigation } from "lucide-react";
+import { ArrowLeft, Navigation, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { getCategoryIcon } from "@/lib/categories";
-import { getListing, getPhotoUrls, type Listing } from "@/lib/listings";
+import {
+  formatPrice,
+  formatTimeLeft,
+  getListing,
+  getListingState,
+  getPhotoUrls,
+  holdListingForPickup,
+  markListingTaken,
+  PICKUP_HOLD_MINUTES,
+  type Listing,
+} from "@/lib/listings";
 import { Header } from "@/components/Header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -31,6 +44,8 @@ function ItemPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Loads this one item plus its photo link.
   useEffect(() => {
@@ -41,12 +56,46 @@ function ItemPage() {
         const urls = await getPhotoUrls([found.photo_url]);
         setPhotoUrl(urls[found.photo_url]);
       }
+      const { data } = await supabase.auth.getSession();
+      setUserId(data.session?.user.id ?? null);
       setLoading(false);
     }
     load();
   }, [id]);
 
+  // Poster closes their own listing.
+  async function markTaken() {
+    if (!listing || busy) return;
+    setBusy(true);
+    try {
+      await markListingTaken(listing.id);
+      setListing({ ...listing, status: "taken", pending_until: null });
+      toast.success("Marked as taken.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update it.");
+    }
+    setBusy(false);
+  }
+
+  // Someone says they're on their way — short hold only.
+  async function holdPickup() {
+    if (!listing || busy) return;
+    setBusy(true);
+    try {
+      await holdListingForPickup(listing.id);
+      const until = new Date(Date.now() + PICKUP_HOLD_MINUTES * 60 * 1000).toISOString();
+      setListing({ ...listing, status: "pending", pending_until: until });
+      toast.success(`Held for ${PICKUP_HOLD_MINUTES} minutes.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not hold it.");
+    }
+    setBusy(false);
+  }
+
   const CategoryIcon = getCategoryIcon(listing?.category ?? "Other");
+  const state = listing ? getListingState(listing) : null;
+  const isOwner = Boolean(listing && userId && listing.user_id === userId);
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,9 +135,23 @@ function ItemPage() {
               {listing.category}
             </h1>
 
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xl font-bold text-primary">{formatPrice(listing)}</span>
+              <Badge variant="secondary">{state}</Badge>
+            </div>
+
             {listing.description && (
               <p className="mt-2 text-sm text-muted-foreground">{listing.description}</p>
             )}
+
+            <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {state === "Expired"
+                ? "This listing has expired."
+                : `${formatTimeLeft(listing.expires_at)} · expires ${new Date(
+                    listing.expires_at,
+                  ).toLocaleString()}`}
+            </p>
 
             <p className="mt-4 text-xs text-muted-foreground">
               The pin is approximate (shifted for the poster's privacy). Look around the area when
@@ -105,6 +168,33 @@ function ItemPage() {
                 Get directions
               </a>
             </Button>
+
+            {isOwner ? (
+              state !== "Taken" && (
+                <Button
+                  className="mt-3 w-full"
+                  size="lg"
+                  variant="outline"
+                  onClick={markTaken}
+                  disabled={busy}
+                >
+                  Mark as taken
+                </Button>
+              )
+            ) : (
+              state === "Available" && (
+                <Button
+                  className="mt-3 w-full"
+                  size="lg"
+                  variant="outline"
+                  onClick={holdPickup}
+                  disabled={busy}
+                >
+                  I'm on my way (holds {PICKUP_HOLD_MINUTES} min)
+                </Button>
+              )
+            )}
+
           </div>
         )}
       </main>

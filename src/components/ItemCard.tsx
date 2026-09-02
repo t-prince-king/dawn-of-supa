@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 import { getCategoryIcon } from "@/lib/categories";
 import { formatDistance } from "@/lib/location";
-import type { Listing } from "@/lib/listings";
+import { formatPrice, getListingState, type Listing } from "@/lib/listings";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -36,11 +37,18 @@ export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
           <CategoryIcon className="h-4 w-4 text-primary" />
           {listing.category}
         </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-sm font-bold text-primary">{formatPrice(listing)}</span>
+          <Badge variant="secondary" className="text-xs">
+            {getListingState(listing)}
+          </Badge>
+        </div>
         {listing.description && (
           <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">
             {listing.description}
           </p>
         )}
+
         {distanceMiles !== undefined && (
           <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3 w-3" />
