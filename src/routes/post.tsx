@@ -5,7 +5,7 @@ import { Camera, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
-import { createListing, uploadItemPhoto } from "@/lib/listings";
+import { createListing, uploadItemPhoto, DURATIONS } from "@/lib/listings";
 import { getUserLocation, type Coordinates } from "@/lib/location";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
