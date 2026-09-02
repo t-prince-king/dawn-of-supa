@@ -21,10 +21,12 @@ export type Database = {
           description: string | null
           expires_at: string
           id: string
+          is_free: boolean
           latitude: number
           longitude: number
           pending_until: string | null
           photo_url: string
+          price: number | null
           status: string
           updated_at: string
           user_id: string
@@ -35,10 +37,12 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          is_free?: boolean
           latitude: number
           longitude: number
           pending_until?: string | null
           photo_url: string
+          price?: number | null
           status?: string
           updated_at?: string
           user_id: string
@@ -49,10 +53,12 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          is_free?: boolean
           latitude?: number
           longitude?: number
           pending_until?: string | null
           photo_url?: string
+          price?: number | null
           status?: string
           updated_at?: string
           user_id?: string
