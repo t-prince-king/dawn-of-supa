@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
 import { getCategoryIcon } from "@/lib/categories";
 import { formatDistance } from "@/lib/location";
-import type { Listing } from "@/lib/listings";
+import { formatPrice, getListingState, type Listing } from "@/lib/listings";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
