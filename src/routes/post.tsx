@@ -79,12 +79,19 @@ function PostPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!userId) return;
+    if (saving) return; // already posting — ignore extra taps
     if (!file) {
       toast.error("Please add a photo of the item.");
       return;
     }
     if (!coords) {
       toast.error("Please share your location so people can find it.");
+      return;
+    }
+
+    const priceValue = Number(price);
+    if (!isFree && (!price.trim() || Number.isNaN(priceValue) || priceValue <= 0)) {
+      toast.error("Please enter a price for this item.");
       return;
     }
 
@@ -98,14 +105,18 @@ function PostPage() {
         description: description.trim(),
         latitude: coords.latitude,
         longitude: coords.longitude,
+        hours,
+        is_free: isFree,
+        price: isFree ? null : priceValue,
       });
       toast.success("Posted! Someone nearby can now save it.");
       navigate({ to: "/find" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong.");
+      setSaving(false);
     }
-    setSaving(false);
   }
+
 
   if (checkingUser) {
     return (
