@@ -78,6 +78,7 @@ function Home() {
                 FIND SOMETHING
               </Link>
             </Button>
+            <InstallButton />
           </div>
         </section>
 
