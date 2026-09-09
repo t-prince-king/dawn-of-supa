@@ -158,15 +158,9 @@ function ItemPage() {
               you arrive.
             </p>
 
-            <Button className="mt-5 w-full" size="lg" asChild>
-              <a
-                href={`geo:${listing.latitude},${listing.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Navigation className="h-5 w-5" />
-                Get directions
-              </a>
+            <Button className="mt-5 w-full" size="lg" onClick={openDirections}>
+              <Navigation className="h-5 w-5" />
+              Get directions
             </Button>
 
             {isOwner ? (
