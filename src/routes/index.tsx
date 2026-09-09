@@ -48,12 +48,22 @@ function Home() {
             <Leaf className="h-3.5 w-3.5 text-primary" />
             Keep good stuff out of landfill
           </span>
+          <div className="mt-6">
+            <HeroMedia />
+          </div>
+
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-foreground">
             ScrapSpot
           </h1>
           <p className="mt-2 text-lg font-medium text-muted-foreground">
             Find What's Worth Saving.
           </p>
+          <p className="mt-2 text-base text-muted-foreground">
+            Someone nearby is giving away <RotatingText />
+          </p>
+          <div className="mt-4">
+            <AlwaysOpen />
+          </div>
 
           <div className="mt-8 grid gap-3">
             <Button size="lg" className="h-16 text-base font-bold" asChild>
