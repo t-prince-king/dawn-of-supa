@@ -1,9 +1,13 @@
 // Home page: the two big buttons that start the whole experience.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PackagePlus, Search, MapPin, ShieldCheck, Leaf } from "lucide-react";
+import { AlwaysOpen } from "@/components/AlwaysOpen";
 import { Header } from "@/components/Header";
+import { HeroMedia } from "@/components/HeroMedia";
+import { InstallButton } from "@/components/InstallButton";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { PremiumSection } from "@/components/PremiumSection";
+import { RotatingText } from "@/components/RotatingText";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
