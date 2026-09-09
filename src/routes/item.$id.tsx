@@ -92,6 +92,17 @@ function ItemPage() {
     setBusy(false);
   }
 
+  // Opens the phone's or computer's own maps app with directions to the pin.
+  function openDirections() {
+    if (!listing) return;
+    const destination = `${listing.latitude},${listing.longitude}`;
+    const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+    const url = isApple
+      ? `https://maps.apple.com/?daddr=${destination}&dirflg=d`
+      : `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   const CategoryIcon = getCategoryIcon(listing?.category ?? "Other");
   const state = listing ? getListingState(listing) : null;
   const isOwner = Boolean(listing && userId && listing.user_id === userId);
@@ -158,15 +169,9 @@ function ItemPage() {
               you arrive.
             </p>
 
-            <Button className="mt-5 w-full" size="lg" asChild>
-              <a
-                href={`geo:${listing.latitude},${listing.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Navigation className="h-5 w-5" />
-                Get directions
-              </a>
+            <Button className="mt-5 w-full" size="lg" onClick={openDirections}>
+              <Navigation className="h-5 w-5" />
+              Get directions
             </Button>
 
             {isOwner ? (
