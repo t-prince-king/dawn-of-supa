@@ -149,11 +149,18 @@ function ItemPage() {
         {listing && (
           <div className="mt-4">
             {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={listing.category}
-                className="h-64 w-full rounded-xl object-cover"
-              />
+              <button
+                type="button"
+                onClick={() => setViewerOpen(true)}
+                aria-label="Enlarge photo"
+                className="flex h-64 w-full items-center justify-center overflow-hidden rounded-xl bg-muted"
+              >
+                <img
+                  src={photoUrl}
+                  alt={listing.category}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </button>
             ) : (
               <div className="flex h-64 w-full items-center justify-center rounded-xl bg-muted">
                 <CategoryIcon className="h-10 w-10 text-muted-foreground" />
@@ -184,14 +191,20 @@ function ItemPage() {
             </p>
 
             <p className="mt-4 text-xs text-muted-foreground">
-              The pin is approximate (shifted for the poster's privacy). Look around the area when
-              you arrive.
+              The pin shows the pickup spot the poster chose. Have a look around the area when you
+              arrive.
             </p>
 
             <Button className="mt-5 w-full" size="lg" onClick={openDirections}>
               <Navigation className="h-5 w-5" />
               Get directions
             </Button>
+
+            <Button className="mt-3 w-full" size="lg" variant="outline" onClick={shareListing}>
+              <Share2 className="h-5 w-5" />
+              Share this listing
+            </Button>
+
 
             {isOwner ? (
               state !== "Taken" && (
