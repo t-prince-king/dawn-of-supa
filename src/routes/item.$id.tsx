@@ -1,7 +1,7 @@
 // Item details: big photo, description and a Get Directions button.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Navigation, Clock } from "lucide-react";
+import { ArrowLeft, Navigation, Clock, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategoryIcon } from "@/lib/categories";
@@ -17,6 +17,7 @@ import {
   type Listing,
 } from "@/lib/listings";
 import { Header } from "@/components/Header";
+import { ImageViewer } from "@/components/ImageViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
