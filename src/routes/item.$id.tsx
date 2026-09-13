@@ -232,6 +232,13 @@ function ItemPage() {
               )
             )}
 
+            {viewerOpen && photoUrl && (
+              <ImageViewer
+                src={photoUrl}
+                alt={listing.category}
+                onClose={() => setViewerOpen(false)}
+              />
+            )}
           </div>
         )}
       </main>
