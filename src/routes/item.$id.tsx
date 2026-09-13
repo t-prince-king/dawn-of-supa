@@ -1,7 +1,7 @@
 // Item details: big photo, description and a Get Directions button.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Navigation, Clock } from "lucide-react";
+import { ArrowLeft, Navigation, Clock, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { getCategoryIcon } from "@/lib/categories";
@@ -17,6 +17,7 @@ import {
   type Listing,
 } from "@/lib/listings";
 import { Header } from "@/components/Header";
+import { ImageViewer } from "@/components/ImageViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -46,6 +47,7 @@ function ItemPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   // Loads this one item plus its photo link.
   useEffect(() => {
@@ -103,6 +105,23 @@ function ItemPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  // Shares this listing's link using the phone's share sheet, or copies it.
+  async function shareListing() {
+    if (!listing) return;
+    const url = `${window.location.origin}/item/${listing.id}`;
+    const title = `${listing.category} on ScrapSpot`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text: title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied.");
+    } catch {
+      // Someone cancelling the share sheet is not an error worth showing.
+    }
+  }
+
   const CategoryIcon = getCategoryIcon(listing?.category ?? "Other");
   const state = listing ? getListingState(listing) : null;
   const isOwner = Boolean(listing && userId && listing.user_id === userId);
@@ -130,11 +149,18 @@ function ItemPage() {
         {listing && (
           <div className="mt-4">
             {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt={listing.category}
-                className="h-64 w-full rounded-xl object-cover"
-              />
+              <button
+                type="button"
+                onClick={() => setViewerOpen(true)}
+                aria-label="Enlarge photo"
+                className="flex h-64 w-full items-center justify-center overflow-hidden rounded-xl bg-muted"
+              >
+                <img
+                  src={photoUrl}
+                  alt={listing.category}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </button>
             ) : (
               <div className="flex h-64 w-full items-center justify-center rounded-xl bg-muted">
                 <CategoryIcon className="h-10 w-10 text-muted-foreground" />
@@ -165,14 +191,20 @@ function ItemPage() {
             </p>
 
             <p className="mt-4 text-xs text-muted-foreground">
-              The pin is approximate (shifted for the poster's privacy). Look around the area when
-              you arrive.
+              The pin shows the pickup spot the poster chose. Have a look around the area when you
+              arrive.
             </p>
 
             <Button className="mt-5 w-full" size="lg" onClick={openDirections}>
               <Navigation className="h-5 w-5" />
               Get directions
             </Button>
+
+            <Button className="mt-3 w-full" size="lg" variant="outline" onClick={shareListing}>
+              <Share2 className="h-5 w-5" />
+              Share this listing
+            </Button>
+
 
             {isOwner ? (
               state !== "Taken" && (
@@ -200,6 +232,13 @@ function ItemPage() {
               )
             )}
 
+            {viewerOpen && photoUrl && (
+              <ImageViewer
+                src={photoUrl}
+                alt={listing.category}
+                onClose={() => setViewerOpen(false)}
+              />
+            )}
           </div>
         )}
       </main>

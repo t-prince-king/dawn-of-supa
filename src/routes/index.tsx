@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
 
 const STEPS = [
   { icon: PackagePlus, title: "Post something", text: "Snap a photo, pick a category." },
-  { icon: MapPin, title: "Share the area", text: "We blur your exact spot for privacy." },
+  { icon: MapPin, title: "Share the spot", text: "Your pickup point goes on the map." },
   { icon: Search, title: "Someone saves it", text: "Nearby people see it on the map." },
 ];
 
@@ -96,8 +96,8 @@ function Home() {
         <Card className="mt-3 flex flex-row items-center gap-3 p-4">
           <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
           <p className="text-sm text-muted-foreground">
-            Your exact address is never saved. Locations are randomly shifted by up to half a
-            mile before anyone sees them.
+            Only post items you are happy for people to collect. The pickup spot you choose is
+            shown on the map, so pick a place you are comfortable sharing.
           </p>
         </Card>
 
