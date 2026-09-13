@@ -47,6 +47,7 @@ function ItemPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   // Loads this one item plus its photo link.
   useEffect(() => {
@@ -102,6 +103,23 @@ function ItemPage() {
       ? `https://maps.apple.com/?daddr=${destination}&dirflg=d`
       : `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  // Shares this listing's link using the phone's share sheet, or copies it.
+  async function shareListing() {
+    if (!listing) return;
+    const url = `${window.location.origin}/item/${listing.id}`;
+    const title = `${listing.category} on ScrapSpot`;
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text: title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied.");
+    } catch {
+      // Someone cancelling the share sheet is not an error worth showing.
+    }
   }
 
   const CategoryIcon = getCategoryIcon(listing?.category ?? "Other");
