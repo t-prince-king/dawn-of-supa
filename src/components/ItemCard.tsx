@@ -72,6 +72,14 @@ export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
           View
         </Link>
       </Button>
+
+      {viewerOpen && photoUrl && (
+        <ImageViewer
+          src={photoUrl}
+          alt={listing.category}
+          onClose={() => setViewerOpen(false)}
+        />
+      )}
     </Card>
   );
 }

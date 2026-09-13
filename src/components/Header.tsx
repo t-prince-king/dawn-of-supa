@@ -1,6 +1,6 @@
 // The top bar shown on every page: logo, main links, and sign in/out.
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Recycle, Search, PlusCircle, LogIn, LogOut } from "lucide-react";
+import { Recycle, Search, PlusCircle, LogIn, LogOut, List as ListIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,14 @@ export function Header() {
               <span className="hidden sm:inline">Post</span>
             </Link>
           </Button>
+          {isSignedIn && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/my-listings">
+                <ListIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">My Listings</span>
+              </Link>
+            </Button>
+          )}
           {isSignedIn ? (
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="h-4 w-4" />
