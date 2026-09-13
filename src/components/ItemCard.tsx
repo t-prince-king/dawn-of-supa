@@ -1,9 +1,11 @@
 // One item card in the nearby list: photo, category, description, distance.
 import { Link } from "@tanstack/react-router";
 import { MapPin } from "lucide-react";
+import { useState } from "react";
 import { getCategoryIcon } from "@/lib/categories";
 import { formatDistance } from "@/lib/location";
 import { formatPrice, getListingState, type Listing } from "@/lib/listings";
+import { ImageViewer } from "@/components/ImageViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,16 +18,24 @@ interface ItemCardProps {
 
 export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
   const CategoryIcon = getCategoryIcon(listing.category);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   return (
     <Card className="flex flex-row items-center gap-3 p-3">
       {photoUrl ? (
-        <img
-          src={photoUrl}
-          alt={listing.category}
-          loading="lazy"
-          className="h-20 w-20 shrink-0 rounded-lg object-cover"
-        />
+        <button
+          type="button"
+          onClick={() => setViewerOpen(true)}
+          aria-label={`Enlarge photo of ${listing.category}`}
+          className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted"
+        >
+          <img
+            src={photoUrl}
+            alt={listing.category}
+            loading="lazy"
+            className="h-full w-full object-contain"
+          />
+        </button>
       ) : (
         <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-muted">
           <CategoryIcon className="h-8 w-8 text-muted-foreground" />
