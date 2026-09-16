@@ -139,6 +139,18 @@ export async function getAvailableListings(): Promise<Listing[]> {
   });
 }
 
+// All listings posted by one user, newest first (includes taken and expired).
+export async function getMyListings(userId: string): Promise<Listing[]> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error("Could not load your listings.");
+  return data as Listing[];
+}
+
 // Poster marks their own item as taken (it then leaves the normal results).
 export async function markListingTaken(id: string): Promise<void> {
   const { error } = await supabase

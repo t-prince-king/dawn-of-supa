@@ -1,9 +1,13 @@
 // Home page: the two big buttons that start the whole experience.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PackagePlus, Search, MapPin, ShieldCheck, Leaf } from "lucide-react";
+import { AlwaysOpen } from "@/components/AlwaysOpen";
 import { Header } from "@/components/Header";
+import { HeroMedia } from "@/components/HeroMedia";
+import { InstallButton } from "@/components/InstallButton";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { PremiumSection } from "@/components/PremiumSection";
+import { RotatingText } from "@/components/RotatingText";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -28,7 +32,7 @@ export const Route = createFileRoute("/")({
 
 const STEPS = [
   { icon: PackagePlus, title: "Post something", text: "Snap a photo, pick a category." },
-  { icon: MapPin, title: "Share the area", text: "We blur your exact spot for privacy." },
+  { icon: MapPin, title: "Share the spot", text: "Your pickup point goes on the map." },
   { icon: Search, title: "Someone saves it", text: "Nearby people see it on the map." },
 ];
 
@@ -44,12 +48,22 @@ function Home() {
             <Leaf className="h-3.5 w-3.5 text-primary" />
             Keep good stuff out of landfill
           </span>
+          <div className="mt-6">
+            <HeroMedia />
+          </div>
+
           <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-foreground">
             ScrapSpot
           </h1>
           <p className="mt-2 text-lg font-medium text-muted-foreground">
             Find What's Worth Saving.
           </p>
+          <p className="mt-2 text-base text-muted-foreground">
+            Someone nearby is giving away <RotatingText />
+          </p>
+          <div className="mt-4">
+            <AlwaysOpen />
+          </div>
 
           <div className="mt-8 grid gap-3">
             <Button size="lg" className="h-16 text-base font-bold" asChild>
@@ -64,6 +78,7 @@ function Home() {
                 FIND SOMETHING
               </Link>
             </Button>
+            <InstallButton />
           </div>
         </section>
 
@@ -81,8 +96,8 @@ function Home() {
         <Card className="mt-3 flex flex-row items-center gap-3 p-4">
           <ShieldCheck className="h-6 w-6 shrink-0 text-primary" />
           <p className="text-sm text-muted-foreground">
-            Your exact address is never saved. Locations are randomly shifted by up to half a
-            mile before anyone sees them.
+            Only post items you are happy for people to collect. The pickup spot you choose is
+            shown on the map, so pick a place you are comfortable sharing.
           </p>
         </Card>
 

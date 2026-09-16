@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FindRouteImport } from './routes/find'
+import { Route as MyListingsRouteImport } from './routes/my-listings'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ItemIdRouteImport } from './routes/item.$id'
@@ -37,6 +38,11 @@ const FindRoute = FindRouteImport.update({
   path: '/find',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyListingsRoute = MyListingsRouteImport.update({
+  id: '/my-listings',
+  path: '/my-listings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PostRoute = PostRouteImport.update({
   id: '/post',
   path: '/post',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/find': typeof FindRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/reset-password': typeof ResetPasswordRoute
   '/item/$id': typeof ItemIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/find'
+    | '/my-listings'
     | '/post'
     | '/reset-password'
     | '/item/$id'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/find'
+    | '/my-listings'
     | '/post'
     | '/reset-password'
     | '/item/$id'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/find'
+    | '/my-listings'
     | '/post'
     | '/reset-password'
     | '/item/$id'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   FindRoute: typeof FindRoute
+  MyListingsRoute: typeof MyListingsRoute
   PostRoute: typeof PostRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ItemIdRoute: typeof ItemIdRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FindRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-listings': {
+      id: '/my-listings'
+      path: '/my-listings'
+      fullPath: '/my-listings'
+      preLoaderRoute: typeof MyListingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/post': {
       id: '/post'
       path: '/post'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   FindRoute: FindRoute,
+  MyListingsRoute: MyListingsRoute,
   PostRoute: PostRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ItemIdRoute: ItemIdRoute,
