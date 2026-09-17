@@ -90,9 +90,9 @@ export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
         </Link>
       </Button>
 
-      {viewerOpen && photoUrl && (
+      {viewerOpen && shownUrl && (
         <ImageViewer
-          src={photoUrl}
+          src={shownUrl}
           alt={listing.category}
           onClose={() => setViewerOpen(false)}
         />
