@@ -70,12 +70,25 @@ export async function uploadItemPhoto(
   file: File,
   userId: string,
 ): Promise<string> {
-  const extension = file.name.split(".").pop() ?? "jpg";
+  // Work out a sensible file ending. Phone cameras sometimes give a name with
+  // no ending at all, so we fall back to the picture type the phone reports.
+  const nameEnding = file.name.includes(".")
+    ? (file.name.split(".").pop() ?? "").toLowerCase()
+    : "";
+  const typeEnding = (file.type.split("/").pop() ?? "").toLowerCase();
+  const extension = /^[a-z0-9]{2,5}$/.test(nameEnding)
+    ? nameEnding
+    : /^[a-z0-9]{2,5}$/.test(typeEnding)
+      ? typeEnding
+      : "jpg";
   const path = `${userId}/${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .upload(path, file, { contentType: file.type });
+    .upload(path, file, {
+      contentType: file.type || "image/jpeg",
+      upsert: false,
+    });
 
   if (error) throw new Error("Photo upload failed. Please try again.");
   return path;
