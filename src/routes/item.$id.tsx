@@ -58,6 +58,7 @@ function ItemPage() {
         const urls = await getPhotoUrls([found.photo_url]);
         setPhotoUrl(urls[found.photo_url]);
       }
+
       const { data } = await supabase.auth.getSession();
       setUserId(data.session?.user.id ?? null);
       setLoading(false);
