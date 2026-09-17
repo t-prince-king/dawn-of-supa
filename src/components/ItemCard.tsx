@@ -24,10 +24,21 @@ interface ItemCardProps {
 export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
   const CategoryIcon = getCategoryIcon(listing.category);
   const [viewerOpen, setViewerOpen] = useState(false);
+  // If a viewing link has gone stale, ask for a fresh one once.
+  const [freshUrl, setFreshUrl] = useState<string | undefined>(undefined);
+  const [retried, setRetried] = useState(false);
+  const shownUrl = freshUrl ?? photoUrl;
+
+  async function retryPhoto() {
+    if (retried) return;
+    setRetried(true);
+    const url = await getPhotoUrl(listing.photo_url);
+    if (url) setFreshUrl(url);
+  }
 
   return (
     <Card className="flex flex-row items-center gap-3 p-3">
-      {photoUrl ? (
+      {shownUrl ? (
         <button
           type="button"
           onClick={() => setViewerOpen(true)}
@@ -35,9 +46,10 @@ export function ItemCard({ listing, photoUrl, distanceMiles }: ItemCardProps) {
           className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted"
         >
           <img
-            src={photoUrl}
+            src={shownUrl}
             alt={listing.category}
             loading="lazy"
+            onError={retryPhoto}
             className="h-full w-full object-contain"
           />
         </button>
