@@ -4,7 +4,12 @@ import { MapPin } from "lucide-react";
 import { useState } from "react";
 import { getCategoryIcon } from "@/lib/categories";
 import { formatDistance } from "@/lib/location";
-import { formatPrice, getListingState, type Listing } from "@/lib/listings";
+import {
+  formatPrice,
+  getListingState,
+  getPhotoUrl,
+  type Listing,
+} from "@/lib/listings";
 import { ImageViewer } from "@/components/ImageViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
