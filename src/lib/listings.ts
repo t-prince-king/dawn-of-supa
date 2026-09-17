@@ -70,12 +70,25 @@ export async function uploadItemPhoto(
   file: File,
   userId: string,
 ): Promise<string> {
-  const extension = file.name.split(".").pop() ?? "jpg";
+  // Work out a sensible file ending. Phone cameras sometimes give a name with
+  // no ending at all, so we fall back to the picture type the phone reports.
+  const nameEnding = file.name.includes(".")
+    ? (file.name.split(".").pop() ?? "").toLowerCase()
+    : "";
+  const typeEnding = (file.type.split("/").pop() ?? "").toLowerCase();
+  const extension = /^[a-z0-9]{2,5}$/.test(nameEnding)
+    ? nameEnding
+    : /^[a-z0-9]{2,5}$/.test(typeEnding)
+      ? typeEnding
+      : "jpg";
   const path = `${userId}/${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .upload(path, file, { contentType: file.type });
+    .upload(path, file, {
+      contentType: file.type || "image/jpeg",
+      upsert: false,
+    });
 
   if (error) throw new Error("Photo upload failed. Please try again.");
   return path;
@@ -188,23 +201,55 @@ export async function deleteListing(id: string): Promise<void> {
   if (error) throw new Error("Could not delete this listing.");
 }
 
-// Photos are stored privately, so we create short-lived signed URLs
-// (valid for 1 hour) to display them. Works for one or many photos.
+// Photos are kept private, so we ask for a temporary viewing link
+// (valid for 8 hours) for one photo.
+export async function getPhotoUrl(path: string): Promise<string | undefined> {
+  const { data, error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .createSignedUrl(path, PHOTO_URL_SECONDS);
+
+  if (error || !data?.signedUrl) {
+    console.error("[photos] could not create link for", path, error);
+    return undefined;
+  }
+  return data.signedUrl;
+}
+
+const PHOTO_URL_SECONDS = 60 * 60 * 8;
+
+// Viewing links for one or many photos. One missing or broken photo can no
+// longer stop the rest of the pictures on the page from showing.
 export async function getPhotoUrls(
   paths: string[],
 ): Promise<Record<string, string>> {
-  if (paths.length === 0) return {};
+  const unique = Array.from(new Set(paths.filter(Boolean)));
+  if (unique.length === 0) return {};
+
+  const urls: Record<string, string> = {};
 
   const { data, error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .createSignedUrls(paths, 60 * 60);
+    .createSignedUrls(unique, PHOTO_URL_SECONDS);
 
-  if (error) return {};
-
-  const urls: Record<string, string> = {};
-  for (const entry of data) {
-    if (entry.path && entry.signedUrl) urls[entry.path] = entry.signedUrl;
+  if (!error && data) {
+    for (const entry of data) {
+      if (entry.path && entry.signedUrl) urls[entry.path] = entry.signedUrl;
+    }
+  } else {
+    console.error("[photos] batch link request failed", error);
   }
+
+  // Anything the batch request missed gets its own attempt.
+  const missing = unique.filter((path) => !urls[path]);
+  if (missing.length > 0) {
+    const results = await Promise.all(
+      missing.map(async (path) => [path, await getPhotoUrl(path)] as const),
+    );
+    for (const [path, url] of results) {
+      if (url) urls[path] = url;
+    }
+  }
+
   return urls;
 }
 

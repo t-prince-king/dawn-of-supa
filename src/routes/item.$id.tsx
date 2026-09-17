@@ -10,6 +10,7 @@ import {
   formatTimeLeft,
   getListing,
   getListingState,
+  getPhotoUrl,
   getPhotoUrls,
   holdListingForPickup,
   markListingTaken,
@@ -58,6 +59,7 @@ function ItemPage() {
         const urls = await getPhotoUrls([found.photo_url]);
         setPhotoUrl(urls[found.photo_url]);
       }
+
       const { data } = await supabase.auth.getSession();
       setUserId(data.session?.user.id ?? null);
       setLoading(false);
@@ -158,6 +160,11 @@ function ItemPage() {
                 <img
                   src={photoUrl}
                   alt={listing.category}
+                  onError={async () => {
+                    // Viewing links are temporary: fetch a fresh one once.
+                    const fresh = await getPhotoUrl(listing.photo_url);
+                    if (fresh && fresh !== photoUrl) setPhotoUrl(fresh);
+                  }}
                   className="max-h-full max-w-full object-contain"
                 />
               </button>
