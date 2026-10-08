@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 import { getAvailableListings, getPhotoUrls, type Listing } from "@/lib/listings";
+import { getCached, setCached } from "@/lib/cache";
 import { calculateDistance, getUserLocation, type Coordinates } from "@/lib/location";
 import { Header } from "@/components/Header";
 import { ItemCard } from "@/components/ItemCard";
@@ -35,26 +36,44 @@ export const Route = createFileRoute("/find")({
 function FindPage() {
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  // Start with recently loaded listings/photos (if any) so returning feels instant.
+  const [listings, setListings] = useState<Listing[]>(
+    () => getCached<Listing[]>("available-listings") ?? [],
+  );
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>(
+    () => getCached<Record<string, string>>("available-photos") ?? {},
+  );
   const [loading, setLoading] = useState(false);
   const [maxMiles, setMaxMiles] = useState(10);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
 
-  // Asks for the location, then loads the listings and their photos.
+  // Asks for the location and loads the listings at the same time.
+  // The map appears as soon as the location arrives; photos fill in after.
   async function start() {
     setLoading(true);
     setLocationError(null);
+
+    // Listings don't need the location, so fetch them in parallel.
+    const listingsTask = getAvailableListings()
+      .then(async (items) => {
+        setListings(items);
+        setCached("available-listings", items);
+        const urls = await getPhotoUrls(items.map((item) => item.photo_url));
+        setPhotoUrls(urls);
+        setCached("available-photos", urls);
+      })
+      .catch((error: unknown) => {
+        setLocationError(error instanceof Error ? error.message : "Something went wrong.");
+      });
+
     try {
       const position = await getUserLocation();
       setCoords(position);
-      const items = await getAvailableListings();
-      setListings(items);
-      setPhotoUrls(await getPhotoUrls(items.map((item) => item.photo_url)));
     } catch (error) {
       setLocationError(error instanceof Error ? error.message : "Something went wrong.");
     }
     setLoading(false);
+    await listingsTask;
   }
 
   useEffect(() => {
