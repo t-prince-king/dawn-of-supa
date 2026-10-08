@@ -53,15 +53,17 @@ function ItemPage() {
   // Loads this one item plus its photo link.
   useEffect(() => {
     async function load() {
-      const found = await getListing(id);
+      // The listing and the sign-in check don't depend on each other.
+      const [found, { data }] = await Promise.all([
+        getListing(id),
+        supabase.auth.getSession(),
+      ]);
       setListing(found);
+      setUserId(data.session?.user.id ?? null);
       if (found) {
         const urls = await getPhotoUrls([found.photo_url]);
         setPhotoUrl(urls[found.photo_url]);
       }
-
-      const { data } = await supabase.auth.getSession();
-      setUserId(data.session?.user.id ?? null);
       setLoading(false);
     }
     load();
