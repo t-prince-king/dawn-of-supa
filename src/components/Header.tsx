@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Recycle, Search, PlusCircle, LogIn, LogOut, List as ListIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { clearCache } from "@/lib/cache";
 import { Button } from "@/components/ui/button";
 
 export function Header() {
@@ -18,6 +19,7 @@ export function Header() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsSignedIn(Boolean(session));
+      if (!session) clearCache();
     });
     return () => subscription.unsubscribe();
   }, []);

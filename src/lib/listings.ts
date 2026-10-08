@@ -219,6 +219,12 @@ const PHOTO_URL_SECONDS = 60 * 60 * 8;
 
 // Viewing links for one or many photos. One missing or broken photo can no
 // longer stop the rest of the pictures on the page from showing.
+// Viewing links already made in this tab are reused for up to 7 hours (they
+// last 8), so returning to a page re-uses the same picture the browser has
+// already downloaded instead of fetching it again.
+const PHOTO_REUSE_MS = 7 * 60 * 60 * 1000;
+const photoLinkCache = new Map<string, { url: string; madeAt: number }>();
+
 export async function getPhotoUrls(
   paths: string[],
 ): Promise<Record<string, string>> {
@@ -226,10 +232,17 @@ export async function getPhotoUrls(
   if (unique.length === 0) return {};
 
   const urls: Record<string, string> = {};
+  const now = Date.now();
+  for (const path of unique) {
+    const cached = photoLinkCache.get(path);
+    if (cached && now - cached.madeAt < PHOTO_REUSE_MS) urls[path] = cached.url;
+  }
+  const needed = unique.filter((path) => !urls[path]);
+  if (needed.length === 0) return urls;
 
   const { data, error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .createSignedUrls(unique, PHOTO_URL_SECONDS);
+    .createSignedUrls(needed, PHOTO_URL_SECONDS);
 
   if (!error && data) {
     for (const entry of data) {
@@ -240,7 +253,7 @@ export async function getPhotoUrls(
   }
 
   // Anything the batch request missed gets its own attempt.
-  const missing = unique.filter((path) => !urls[path]);
+  const missing = needed.filter((path) => !urls[path]);
   if (missing.length > 0) {
     const results = await Promise.all(
       missing.map(async (path) => [path, await getPhotoUrl(path)] as const),
@@ -250,6 +263,9 @@ export async function getPhotoUrls(
     }
   }
 
+  for (const path of needed) {
+    if (urls[path]) photoLinkCache.set(path, { url: urls[path], madeAt: now });
+  }
   return urls;
 }
 

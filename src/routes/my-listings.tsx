@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PackagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCached, setCached } from "@/lib/cache";
 import {
   getListingState,
   getMyListings,
@@ -53,9 +54,20 @@ function MyListingsPage() {
       const userId = data.session?.user.id ?? null;
       setSignedIn(Boolean(userId));
       if (userId) {
+        // Show this same user's recently loaded listings right away (cached
+        // per account, wiped on sign-out), then refresh in the background.
+        const key = `my-listings:${userId}`;
+        const cached = getCached<{ mine: Listing[]; urls: Record<string, string> }>(key);
+        if (cached) {
+          setListings(cached.mine);
+          setPhotoUrls(cached.urls);
+          setLoading(false);
+        }
         const mine = await getMyListings(userId);
         setListings(mine);
-        setPhotoUrls(await getPhotoUrls(mine.map((item) => item.photo_url)));
+        const urls = await getPhotoUrls(mine.map((item) => item.photo_url));
+        setPhotoUrls(urls);
+        setCached(key, { mine, urls });
       }
       setLoading(false);
     }
