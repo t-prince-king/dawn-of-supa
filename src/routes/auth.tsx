@@ -3,7 +3,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { hasAcceptedCurrentTerms, recordTermsAcceptance } from "@/lib/terms";
 import { Header } from "@/components/Header";
+import { TermsCheckbox } from "@/components/TermsConsent";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,33 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
+
+  // Signs the user out when acceptance could not be saved, so nobody gets
+  // access without a recorded acceptance.
+  async function failAndSignOut(message: string) {
+    await supabase.auth.signOut();
+    setTermsError(message);
+  }
+
+  // After a successful sign-in, make sure the current terms are accepted.
+  // Returns true when the user may continue.
+  async function ensureTermsAccepted(userId: string): Promise<boolean> {
+    if (await hasAcceptedCurrentTerms(userId)) return true;
+    if (!acceptedTerms) {
+      await failAndSignOut(
+        "Please tick the box to confirm you are 18 or older and accept the terms, then sign in again.",
+      );
+      return false;
+    }
+    const error = await recordTermsAcceptance(userId);
+    if (error) {
+      await failAndSignOut(error);
+      return false;
+    }
+    return true;
+  }
 
   // Sends the email + password to the backend.
   async function submit(event: React.FormEvent) {

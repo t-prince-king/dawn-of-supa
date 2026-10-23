@@ -15,7 +15,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as FindRouteImport } from './routes/find'
 import { Route as MyListingsRouteImport } from './routes/my-listings'
 import { Route as PostRouteImport } from './routes/post'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ItemIdRouteImport } from './routes/item.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -48,9 +50,19 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ItemIdRoute = ItemIdRouteImport.update({
@@ -66,7 +78,9 @@ export interface FileRoutesByFullPath {
   '/find': typeof FindRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRoutesByTo {
@@ -76,7 +90,9 @@ export interface FileRoutesByTo {
   '/find': typeof FindRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRoutesById {
@@ -87,7 +103,9 @@ export interface FileRoutesById {
   '/find': typeof FindRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/terms': typeof TermsRoute
   '/item/$id': typeof ItemIdRoute
 }
 export interface FileRouteTypes {
@@ -99,7 +117,9 @@ export interface FileRouteTypes {
     | '/find'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/reset-password'
+    | '/terms'
     | '/item/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -109,7 +129,9 @@ export interface FileRouteTypes {
     | '/find'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/reset-password'
+    | '/terms'
     | '/item/$id'
   id:
     | '__root__'
@@ -119,7 +141,9 @@ export interface FileRouteTypes {
     | '/find'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/reset-password'
+    | '/terms'
     | '/item/$id'
   fileRoutesById: FileRoutesById
 }
@@ -130,7 +154,9 @@ export interface RootRouteChildren {
   FindRoute: typeof FindRoute
   MyListingsRoute: typeof MyListingsRoute
   PostRoute: typeof PostRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TermsRoute: typeof TermsRoute
   ItemIdRoute: typeof ItemIdRoute
 }
 
@@ -178,11 +204,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/item/$id': {
@@ -202,7 +242,9 @@ const rootRouteChildren: RootRouteChildren = {
   FindRoute: FindRoute,
   MyListingsRoute: MyListingsRoute,
   PostRoute: PostRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TermsRoute: TermsRoute,
   ItemIdRoute: ItemIdRoute,
 }
 export const routeTree = rootRouteImport
