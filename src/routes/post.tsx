@@ -7,7 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import { createListing, uploadItemPhoto, DURATIONS } from "@/lib/listings";
 import { getUserLocation, type Coordinates } from "@/lib/location";
+import { hasAcceptedCurrentTerms } from "@/lib/terms";
 import { Header } from "@/components/Header";
+import { ConsentPrompt } from "@/components/TermsConsent";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +38,7 @@ function PostPage() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [checkingUser, setCheckingUser] = useState(true);
+  const [termsOk, setTermsOk] = useState<boolean | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,11 +52,13 @@ function PostPage() {
   const [saving, setSaving] = useState(false);
 
 
-  // Who is signed in?
+  // Who is signed in, and have they accepted the current terms?
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserId(data.session?.user.id ?? null);
+    supabase.auth.getSession().then(async ({ data }) => {
+      const id = data.session?.user.id ?? null;
+      setUserId(id);
       setCheckingUser(false);
+      if (id) setTermsOk(await hasAcceptedCurrentTerms(id));
     });
   }, []);
 
@@ -141,6 +146,18 @@ function PostPage() {
           <Button className="mt-6" asChild>
             <Link to="/auth">Sign in or create account</Link>
           </Button>
+        </main>
+      </div>
+    );
+  }
+
+  // Signed in but has not accepted the current terms yet → ask first.
+  if (termsOk === false) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="px-4 pb-12">
+          <ConsentPrompt userId={userId} onAccepted={() => setTermsOk(true)} />
         </main>
       </div>
     );
