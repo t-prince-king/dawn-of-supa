@@ -64,6 +64,16 @@ function AuthPage() {
   // Sends the email + password to the backend.
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    setTermsError("");
+
+    // New accounts must actively confirm age + terms before we even try.
+    if (isSignUp && !acceptedTerms) {
+      setTermsError(
+        "Please tick the box to confirm you are 18 or older and accept the Terms of Service and Privacy Policy.",
+      );
+      return;
+    }
+
     setBusy(true);
 
     if (isSignUp) {
@@ -72,15 +82,24 @@ function AuthPage() {
         password,
         options: { emailRedirectTo: window.location.origin },
       });
-      setBusy(false);
       if (error) {
+        setBusy(false);
         toast.error(error.message);
         return;
       }
       // With email confirmation on there is no session yet — the user must
       // click the link in their email before they can sign in and post.
+      // Their acceptance is recorded when they first sign in.
       if (!data.session) {
+        setBusy(false);
         setCheckEmail(true);
+        return;
+      }
+      const userId = data.session.user.id;
+      const recordError = await recordTermsAcceptance(userId);
+      setBusy(false);
+      if (recordError) {
+        await failAndSignOut(recordError);
         return;
       }
       toast.success("Account created! You're signed in.");
@@ -88,12 +107,16 @@ function AuthPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setBusy(false);
       toast.error(error.message);
       return;
     }
+    const userId = data.session?.user.id;
+    const allowed = userId ? await ensureTermsAccepted(userId) : false;
+    setBusy(false);
+    if (!allowed) return;
     toast.success("Welcome back!");
     navigate({ to: "/" });
   }
