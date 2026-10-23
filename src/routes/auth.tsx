@@ -201,6 +201,14 @@ function AuthPage() {
                 placeholder="At least 6 characters"
               />
             </div>
+            <TermsCheckbox
+              checked={acceptedTerms}
+              onChange={(checked) => {
+                setAcceptedTerms(checked);
+                if (checked) setTermsError("");
+              }}
+            />
+            {termsError && <p className="text-sm font-medium text-destructive">{termsError}</p>}
             <Button type="submit" disabled={busy}>
               {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
             </Button>
