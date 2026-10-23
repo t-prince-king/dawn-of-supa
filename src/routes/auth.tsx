@@ -3,7 +3,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { hasAcceptedCurrentTerms, recordTermsAcceptance } from "@/lib/terms";
 import { Header } from "@/components/Header";
+import { TermsCheckbox } from "@/components/TermsConsent";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,10 +33,47 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState("");
+
+  // Signs the user out when acceptance could not be saved, so nobody gets
+  // access without a recorded acceptance.
+  async function failAndSignOut(message: string) {
+    await supabase.auth.signOut();
+    setTermsError(message);
+  }
+
+  // After a successful sign-in, make sure the current terms are accepted.
+  // Returns true when the user may continue.
+  async function ensureTermsAccepted(userId: string): Promise<boolean> {
+    if (await hasAcceptedCurrentTerms(userId)) return true;
+    if (!acceptedTerms) {
+      await failAndSignOut(
+        "Please tick the box to confirm you are 18 or older and accept the terms, then sign in again.",
+      );
+      return false;
+    }
+    const error = await recordTermsAcceptance(userId);
+    if (error) {
+      await failAndSignOut(error);
+      return false;
+    }
+    return true;
+  }
 
   // Sends the email + password to the backend.
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    setTermsError("");
+
+    // New accounts must actively confirm age + terms before we even try.
+    if (isSignUp && !acceptedTerms) {
+      setTermsError(
+        "Please tick the box to confirm you are 18 or older and accept the Terms of Service and Privacy Policy.",
+      );
+      return;
+    }
+
     setBusy(true);
 
     if (isSignUp) {
@@ -43,15 +82,24 @@ function AuthPage() {
         password,
         options: { emailRedirectTo: window.location.origin },
       });
-      setBusy(false);
       if (error) {
+        setBusy(false);
         toast.error(error.message);
         return;
       }
       // With email confirmation on there is no session yet — the user must
       // click the link in their email before they can sign in and post.
+      // Their acceptance is recorded when they first sign in.
       if (!data.session) {
+        setBusy(false);
         setCheckEmail(true);
+        return;
+      }
+      const userId = data.session.user.id;
+      const recordError = await recordTermsAcceptance(userId);
+      setBusy(false);
+      if (recordError) {
+        await failAndSignOut(recordError);
         return;
       }
       toast.success("Account created! You're signed in.");
@@ -59,12 +107,16 @@ function AuthPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setBusy(false);
       toast.error(error.message);
       return;
     }
+    const userId = data.session?.user.id;
+    const allowed = userId ? await ensureTermsAccepted(userId) : false;
+    setBusy(false);
+    if (!allowed) return;
     toast.success("Welcome back!");
     navigate({ to: "/" });
   }
@@ -149,6 +201,14 @@ function AuthPage() {
                 placeholder="At least 6 characters"
               />
             </div>
+            <TermsCheckbox
+              checked={acceptedTerms}
+              onChange={(checked) => {
+                setAcceptedTerms(checked);
+                if (checked) setTermsError("");
+              }}
+            />
+            {termsError && <p className="text-sm font-medium text-destructive">{termsError}</p>}
             <Button type="submit" disabled={busy}>
               {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
             </Button>

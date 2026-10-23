@@ -11,7 +11,9 @@ import {
   type Listing,
   type ListingState,
 } from "@/lib/listings";
+import { hasAcceptedCurrentTerms } from "@/lib/terms";
 import { Header } from "@/components/Header";
+import { ConsentPrompt } from "@/components/TermsConsent";
 import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -43,6 +45,8 @@ const GROUPS: { title: string; states: ListingState[] }[] = [
 
 function MyListingsPage() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [termsOk, setTermsOk] = useState<boolean | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -53,7 +57,15 @@ function MyListingsPage() {
       const { data } = await supabase.auth.getSession();
       const userId = data.session?.user.id ?? null;
       setSignedIn(Boolean(userId));
+      setUserId(userId);
       if (userId) {
+        // Signed in but not accepted the current terms → ask before showing.
+        if (!(await hasAcceptedCurrentTerms(userId))) {
+          setTermsOk(false);
+          setLoading(false);
+          return;
+        }
+        setTermsOk(true);
         // Show this same user's recently loaded listings right away (cached
         // per account, wiped on sign-out), then refresh in the background.
         const key = `my-listings:${userId}`;
@@ -92,7 +104,11 @@ function MyListingsPage() {
           </Card>
         )}
 
-        {!loading && signedIn && listings.length === 0 && (
+        {!loading && signedIn && termsOk === false && userId && (
+          <ConsentPrompt userId={userId} onAccepted={() => window.location.reload()} />
+        )}
+
+        {!loading && signedIn && termsOk === true && listings.length === 0 && (
           <Card className="mt-6 p-6 text-center">
             <p className="text-sm text-muted-foreground">You have not posted anything yet.</p>
             <Button className="mt-4" asChild>
@@ -106,6 +122,7 @@ function MyListingsPage() {
 
         {!loading &&
           signedIn &&
+          termsOk === true &&
           listings.length > 0 &&
           GROUPS.map((group) => {
             const items = listings.filter((listing) =>
