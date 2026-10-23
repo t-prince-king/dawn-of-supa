@@ -104,7 +104,11 @@ function MyListingsPage() {
           </Card>
         )}
 
-        {!loading && signedIn && listings.length === 0 && (
+        {!loading && signedIn && termsOk === false && userId && (
+          <ConsentPrompt userId={userId} onAccepted={() => window.location.reload()} />
+        )}
+
+        {!loading && signedIn && termsOk === true && listings.length === 0 && (
           <Card className="mt-6 p-6 text-center">
             <p className="text-sm text-muted-foreground">You have not posted anything yet.</p>
             <Button className="mt-4" asChild>
