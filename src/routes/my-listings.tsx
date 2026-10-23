@@ -122,6 +122,7 @@ function MyListingsPage() {
 
         {!loading &&
           signedIn &&
+          termsOk === true &&
           listings.length > 0 &&
           GROUPS.map((group) => {
             const items = listings.filter((listing) =>
